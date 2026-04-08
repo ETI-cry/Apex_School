@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "797973623484",
+    "project_id": "ltb-10",
+    "storage_bucket": "ltb-10.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797973623484:android:6586a5e937240c230656b9",
+        "android_client_info": {
+          "package_name": "com.example.ltbq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqDGUf3YNCBwZcDpj6ouPS1trbpZk7poY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,82 @@
+name: apex
+description: "Apex — Excellence au quotidien"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icônes et UI de base
+  cupertino_icons: ^1.0.8
+  dotted_border: ^2.1.0
+  lucide_icons: ^0.257.0
+
+  # Backend et stockage
+  appwrite: ^12.0.0
+  shared_preferences: ^2.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  provider: ^6.0.5
+
+  # Fichiers et médias
+  file_picker: ^8.1.2
+  image_picker: ^1.1.0
+  cached_network_image: ^3.4.1
+  image: ^4.2.0
+  flutter_image_compress: ^2.3.0
+  photo_view: ^0.15.0
+  video_player: ^2.9.2
+  video_thumbnail: ^0.5.3
+
+  # PDF - VERSION CORRIGÉE (plus de conflit)
+  syncfusion_flutter_pdf: ^26.1.41
+
+  # Firebase - versions compatibles entre elles
+  firebase_core: ^3.8.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.5.0
+
+  # Authentification
+  google_sign_in: ^6.2.1
+
+  # Partage et utilitaires
+  share_plus: ^10.0.2
+  url_launcher: ^6.3.0
+  uuid: ^4.5.0
+  intl: ^0.19.0
+  connectivity_plus: ^6.1.0
+  device_info_plus: ^9.1.2
+
+  # UI et animations
+  flutter_slidable: ^3.1.1
+  flutter_animate: ^4.5.0
+  lottie: ^3.1.2
+  shimmer: ^3.0.0
+  flutter_staggered_grid_view: ^0.7.0
+  infinite_scroll_pagination: ^4.0.0
+  flutter_portal: ^1.1.4
+  fluttertoast: ^8.2.8
+
+  # Vibrations (optionnel)
+  vibration: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: fonts/Inter-VariableFont_opsz,wght.ttf
+
+  assets:
+    - assets/images/
+    - assets/videos/

@@ -1,0 +1,130 @@
+// ═══════════════════════════════════════════════════════════
+// CHAT STORE — Cache global + Stream temps réel
+// ═══════════════════════════════════════════════════════════
+
+class _ChatStore {
+  static final _ChatStore _i = _ChatStore._();
+  factory _ChatStore() => _i;
+  _ChatStore._() {
+    debugPrint('[CHAT_STORE] 🏗️  Singleton instancié');
+    GlobalDataCache.addListener(_onGlobalCacheUpdate);
+  }
+
+  final Map<String, List<Map<String, dynamic>>> _messagesCache = {};
+  final Map<String, StreamController<List<Map<String, dynamic>>>> _controllers = {};
+  bool _ready = false;
+
+  bool get ready => _ready;
+
+  void _onGlobalCacheUpdate() {
+    debugPrint('[CHAT_STORE] 🔄 Global cache update (chatReady: ${GlobalDataCache.chatReady})');
+    if (GlobalDataCache.chatReady) {
+      _syncFromCache();
+    }
+  }
+
+  void _syncFromCache() {
+    final allMessages = GlobalDataCache.chatMessages;
+    debugPrint('[CHAT_STORE] 📦 Sync: ${allMessages.length} canaux dans le cache');
+
+    allMessages.forEach((channelId, messages) {
+      _messagesCache[channelId] = messages;
+      _emitMessages(channelId);
+    });
+
+    _ready = true;
+    debugPrint('[CHAT_STORE] ✅ Sync terminée');
+  }
+
+  Stream<List<Map<String, dynamic>>> messagesStream(String channelId) {
+    if (_controllers.containsKey(channelId)) {
+      return _controllers[channelId]!.stream;
+    }
+
+    final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
+    _controllers[channelId] = controller;
+
+    debugPrint('[CHAT_STORE] 📺 Création stream pour canal: $channelId');
+
+    if (_messagesCache.containsKey(channelId)) {
+      controller.add(List<Map<String, dynamic>>.from(_messagesCache[channelId]!));
+      debugPrint('[CHAT_STORE] ✅ Cache émis pour $channelId: ${_messagesCache[channelId]!.length} messages');
+    } else if (_ready) {
+      controller.add([]);
+    }
+
+    final subscription = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(channelId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .limit(30)
+        .snapshots()
+        .listen((snap) {
+      final remoteMessages = snap.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+
+      _messagesCache[channelId] = remoteMessages;
+      controller.add(remoteMessages);
+      debugPrint('[CHAT_STORE] 🔄 Firestore update $channelId: ${remoteMessages.length} messages');
+    }, onError: (e) {
+      debugPrint('[CHAT_STORE] ❌ Erreur stream $channelId: $e');
+    });
+
+    controller.onCancel = () {
+      debugPrint('[CHAT_STORE] 🗑️  Cancel stream $channelId');
+      subscription.cancel();
+      _controllers.remove(channelId);
+    };
+
+    return controller.stream;
+  }
+
+  void _emitMessages(String channelId) {
+    final controller = _controllers[channelId];
+    if (controller != null && _messagesCache.containsKey(channelId)) {
+      final messages = _messagesCache[channelId]!;
+      controller.add(List<Map<String, dynamic>>.from(messages));
+      debugPrint('[CHAT_STORE] 📡 Émission cache pour $channelId: ${messages.length} msgs');
+    }
+  }
+
+  void addOptimisticMessage(String channelId, Map<String, dynamic> msg) {
+    if (!_messagesCache.containsKey(channelId)) {
+      _messagesCache[channelId] = [];
+    }
+    _messagesCache[channelId]!.insert(0, msg);
+    _emitMessages(channelId);
+    debugPrint('[CHAT_STORE] ✨ Ajout optimistic msg à $channelId');
+  }
+
+  void updateMessage(String channelId, String msgId, Map<String, dynamic> updates) {
+    final messages = _messagesCache[channelId];
+    if (messages != null) {
+      final idx = messages.indexWhere((m) => m['messageId'] == msgId);
+      if (idx != -1) {
+        messages[idx] = {...messages[idx], ...updates};
+        _emitMessages(channelId);
+        debugPrint('[CHAT_STORE] ✏️  Update msg $msgId dans $channelId');
+      }
+    }
+  }
+
+  void removeMessage(String channelId, String msgId) {
+    final messages = _messagesCache[channelId];
+    if (messages != null) {
+      messages.removeWhere((m) => m['messageId'] == msgId);
+      _emitMessages(channelId);
+      debugPrint('[CHAT_STORE] 🗑️  Remove msg $msgId de $channelId');
+    }
+  }
+
+  void invalidate() {
+    debugPrint('[CHAT_STORE] 🗑️  Invalidation complète');
+    _messagesCache.clear();
+    _controllers.forEach((_, c) => c.close());
+    _controllers.clear();
+    _ready = false;
+  }
+}
