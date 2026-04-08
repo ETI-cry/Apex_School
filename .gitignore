@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Flutter build outputs (évite les fichiers lourds)
+build/
+android/app/build/
+*.apk
+*.aab
+*.bin
+
